@@ -2,9 +2,9 @@
 
 A minimal reference implementation for a fail-closed mutation boundary.
 
-This repository demonstrates a simple rule:
+This repository demonstrates a simple path-local rule:
 
-A state mutation may occur only when:
+A state mutation on the demonstrated governed path may occur only when:
 
 - a valid decision record exists
 - the authorised object matches the presented payload
@@ -26,9 +26,9 @@ This repository focuses on the point that matters:
 **the mutation boundary**
 
 The question is not whether a failure can be described after the fact.
-The question is whether an invalid transition can occur at all.
+The question is whether an invalid transition can occur on the demonstrated governed path.
 
-If an invalid transition is reachable, the system is not governed.
+If an invalid transition is reachable on that path, the local gate has failed.
 
 ---
 
@@ -41,6 +41,16 @@ If an invalid transition is reachable, the system is not governed.
 - replay protection
 - inspectable deny reasons
 - minimal domain model
+
+---
+
+## Current hardening gap
+
+The current execution order applies mutation before nonce consumption and audit append.
+
+That means this repository does not currently claim atomic proof / replay / audit ordering where nonce consumption and audit durability are completed before consequence binds.
+
+This ordering gap is tracked in issue #1.
 
 ---
 
@@ -86,7 +96,7 @@ Contains:
 - signature
 
 ### `CommitGate`
-The sole mutation entry point.
+The sole demonstrated mutation entry point.
 
 Responsible for:
 
@@ -94,16 +104,16 @@ Responsible for:
 - verifying payload binding
 - checking authority
 - checking transition admissibility
-- enforcing replay denial
+- enforcing replay denial on the demonstrated path
 - applying the mutation only if all checks pass
 
 ### `StateStore`
-The governed state store.
+The governed state store for the demo path.
 
-No direct public mutation path exists outside the gate.
+This repository does not prove path-universal exclusion of every possible mutation route in a deployed system.
 
 ### `NonceLedger`
-Tracks consumed nonces to prevent replay.
+Tracks consumed nonces to prevent replay on the demonstrated path.
 
 ### `AuditLog`
 Append-only record of allow / deny outcomes.
@@ -128,7 +138,9 @@ A mutation attempt is processed in this order:
 10. consume nonce
 11. append audit record
 
-Any failed check terminates the request.
+Any failed check before mutation terminates the request.
+
+The mutation-before-nonce and mutation-before-audit ordering is a known v1 hardening gap, tracked in issue #1.
 
 ---
 
@@ -167,7 +179,7 @@ src/tagate/
 python -m pytest tests/ -v
 ```
 
-The test suite proves both sides of the claim.
+The test suite checks both sides of the local claim.
 
 **Allowed:** valid record, valid signature, matching payload, authorised scope, admissible transition, fresh nonce.
 
@@ -180,16 +192,18 @@ This repository is not intended to be:
 - a full policy engine
 - a distributed authorisation framework
 - a production-ready workflow platform
+- a proof of path-universal deployment coverage
+- a proof of atomic proof / nonce / mutation / audit ordering
 
-It is a minimal proof surface for one claim:
+It is a minimal proof surface for one local claim:
 
-**no valid decision record → no state mutation**
+**no valid decision record → no state mutation on the demonstrated governed path**
 
 ## What this does not prove
 
-This repository does not prove adoption, certification, standardisation, or production readiness.
+This repository does not prove adoption, certification, standardisation, production readiness, or path-universal deployment coverage.
 
-It demonstrates a bounded execution-control surface that can be run, inspected, and tested.
+It demonstrates a bounded execution-control surface that can be run, inspected, and tested at its stated scope.
 
 ## Licence
 
