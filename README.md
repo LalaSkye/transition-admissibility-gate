@@ -32,6 +32,46 @@ If an invalid transition is reachable on that path, the local gate has failed.
 
 ---
 
+## Authority is necessary, not sufficient
+
+A valid authority record is required before a consequence-producing transition can proceed.
+
+It is not sufficient on its own.
+
+The proposed transition must still be admissible under the live state that exists at the point of mutation.
+
+This matters because state can move after authority is issued.
+
+A record may be:
+
+- validly issued
+- scoped to the actor
+- unexpired
+- unreplayed
+
+and still fail if the proposed transition is no longer permitted under current state.
+
+In this repository:
+
+- authority answers: who or what may request this transition?
+- scope answers: what class of transition is allowed?
+- admissibility answers: is this specific transition still permitted now?
+- the mutation boundary answers: may this state change proceed?
+
+If the live-state admissibility check fails, the transition is refused before mutation and the result records the denial reason.
+
+Claim boundary:
+
+This does not claim production deployment, compliance, certification, or third-party validation.
+
+It defines the proof condition for one demonstrated boundary:
+
+no consequence-producing transition should proceed merely because authority once existed.
+
+Authority must still meet live admissibility at the point of mutation.
+
+---
+
 ## Design goals
 
 - fail-closed by default
